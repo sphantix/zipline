@@ -30,7 +30,7 @@ from pandas import HDFStore
 import tables
 from six import with_metaclass
 from toolz import keymap, valmap
-from trading_calendars import get_calendar
+from exchange_calendars import get_calendar
 
 from zipline.data._minute_bar_internal import (
     minute_value,
@@ -80,7 +80,7 @@ def _calc_minute_index(market_opens, minutes_per_day):
         start_ix = minutes_per_day * i
         end_ix = start_ix + minutes_per_day
         minutes[start_ix:end_ix] = minute_values
-    return pd.to_datetime(minutes, utc=True, box=True)
+    return pd.to_datetime(minutes, utc=True)
 
 
 def _sid_subdir_path(sid):
@@ -228,19 +228,16 @@ class BcolzMinuteBarMetadata(object):
 
             if version >= 2:
                 calendar = get_calendar(raw_data['calendar_name'])
-                start_session = pd.Timestamp(
-                    raw_data['start_session'], tz='UTC')
-                end_session = pd.Timestamp(raw_data['end_session'], tz='UTC')
+                start_session = pd.Timestamp(raw_data['start_session'])
+                end_session = pd.Timestamp(raw_data['end_session'])
             else:
                 # No calendar info included in older versions, so
                 # default to NYSE.
                 calendar = get_calendar('XNYS')
 
-                start_session = pd.Timestamp(
-                    raw_data['first_trading_day'], tz='UTC')
-                end_session = calendar.minute_to_session_label(
-                    pd.Timestamp(
-                        raw_data['market_closes'][-1], unit='m', tz='UTC')
+                start_session = pd.Timestamp(raw_data['first_trading_day'])
+                end_session = calendar.minute_to_session(
+                    pd.Timestamp(raw_data['market_closes'][-1], unit='m')
                 )
 
             if version >= 3:
@@ -319,16 +316,6 @@ class BcolzMinuteBarMetadata(object):
             List of int64 values representing UTC market closes as
             minutes since epoch.
         """
-
-        calendar = self.calendar
-        slicer = calendar.schedule.index.slice_indexer(
-            self.start_session,
-            self.end_session,
-        )
-        schedule = calendar.schedule[slicer]
-        market_opens = schedule.market_open
-        market_closes = schedule.market_close
-
         metadata = {
             'version': self.version,
             'ohlc_ratio': self.default_ohlc_ratio,
@@ -337,14 +324,6 @@ class BcolzMinuteBarMetadata(object):
             'calendar_name': self.calendar.name,
             'start_session': str(self.start_session.date()),
             'end_session': str(self.end_session.date()),
-            # Write these values for backwards compatibility
-            'first_trading_day': str(self.start_session.date()),
-            'market_opens': (
-                market_opens.values.astype('datetime64[m]').
-                astype(np.int64).tolist()),
-            'market_closes': (
-                market_closes.values.astype('datetime64[m]').
-                astype(np.int64).tolist()),
         }
         with open(self.metadata_path(rootdir), 'w+') as fp:
             json.dump(metadata, fp)
@@ -466,7 +445,7 @@ class BcolzMinuteBarWriter(object):
         self._ohlc_ratios_per_sid = ohlc_ratios_per_sid
 
         self._minute_index = _calc_minute_index(
-            self._schedule.market_open, self._minutes_per_day)
+            calendar.first_minutes[slicer], self._minutes_per_day)
 
         if write_metadata:
             metadata = BcolzMinuteBarMetadata(
@@ -782,7 +761,7 @@ class BcolzMinuteBarWriter(object):
         table = self._ensure_ctable(sid)
 
         tds = self._session_labels
-        input_first_day = self._calendar.minute_to_session_label(
+        input_first_day = self._calendar.minute_to_session(
             pd.Timestamp(dts[0]), direction='previous')
 
         last_date = self.last_date_in_output_for_sid(sid)
@@ -929,10 +908,10 @@ class BcolzMinuteBarReader(MinuteBarReader):
             self._end_session,
         )
         self._schedule = self.calendar.schedule[slicer]
-        self._market_opens = self._schedule.market_open
+        self._market_opens = self.calendar.first_minutes[slicer]
         self._market_open_values = self._market_opens.values.\
             astype('datetime64[m]').astype(np.int64)
-        self._market_closes = self._schedule.market_close
+        self._market_closes = self._schedule.close
         self._market_close_values = self._market_closes.values.\
             astype('datetime64[m]').astype(np.int64)
 
@@ -971,7 +950,7 @@ class BcolzMinuteBarReader(MinuteBarReader):
 
     @lazyval
     def last_available_dt(self):
-        _, close = self.calendar.open_and_close_for_session(self._end_session)
+        _, close = self.calendar.session_open_close(self._end_session)
         return close
 
     @property

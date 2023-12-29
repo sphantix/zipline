@@ -1,6 +1,8 @@
 """
 Functions for ranking and sorting.
 """
+# cython: language_level=3
+
 cimport cython
 from cpython cimport bool
 from numpy cimport (

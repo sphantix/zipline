@@ -53,7 +53,7 @@ class AssetDispatchSessionBarTestCase(WithBcolzEquityDailyBarReader,
     @classmethod
     def make_future_minute_bar_data(cls):
         m_opens = [
-            cls.trading_calendar.open_and_close_for_session(session)[0]
+            cls.exchange_calendar.open_and_close_for_session(session)[0]
             for session in cls.trading_sessions['us_futures']]
         yield 10001, DataFrame({
             'open': [10000.5, 10001.5, nan],
@@ -123,17 +123,17 @@ class AssetDispatchSessionBarTestCase(WithBcolzEquityDailyBarReader,
 
         readers = {
             Equity: ReindexSessionBarReader(
-                cls.trading_calendar,
+                cls.exchange_calendar,
                 cls.bcolz_equity_daily_bar_reader,
                 cls.START_DATE,
                 cls.END_DATE),
             Future: MinuteResampleSessionBarReader(
-                cls.trading_calendar,
+                cls.exchange_calendar,
                 cls.bcolz_future_minute_bar_reader,
             )
         }
         cls.dispatch_reader = AssetDispatchSessionBarReader(
-            cls.trading_calendar,
+            cls.exchange_calendar,
             cls.asset_finder,
             readers
         )
@@ -181,7 +181,7 @@ class AssetDispatchMinuteBarTestCase(WithBcolzEquityMinuteBarReader,
 
     @classmethod
     def make_equity_minute_bar_data(cls):
-        minutes = cls.trading_calendars[Equity].minutes_for_session(
+        minutes = cls.exchange_calendars[Equity].minutes_for_session(
             cls.START_DATE)
         yield 1, DataFrame({
             'open': [100.5, 101.5],
@@ -207,9 +207,9 @@ class AssetDispatchMinuteBarTestCase(WithBcolzEquityMinuteBarReader,
 
     @classmethod
     def make_future_minute_bar_data(cls):
-        e_m = cls.trading_calendars[Equity].minutes_for_session(
+        e_m = cls.exchange_calendars[Equity].minutes_for_session(
             cls.START_DATE)
-        f_m = cls.trading_calendar.minutes_for_session(
+        f_m = cls.exchange_calendar.minutes_for_session(
             cls.START_DATE)
         # Equity market open occurs at loc 930 in Future minutes.
         minutes = [f_m[0], e_m[0], e_m[1]]
@@ -258,14 +258,14 @@ class AssetDispatchMinuteBarTestCase(WithBcolzEquityMinuteBarReader,
 
         readers = {
             Equity: ReindexMinuteBarReader(
-                cls.trading_calendar,
+                cls.exchange_calendar,
                 cls.bcolz_equity_minute_bar_reader,
                 cls.START_DATE,
                 cls.END_DATE),
             Future: cls.bcolz_future_minute_bar_reader
         }
         cls.dispatch_reader = AssetDispatchMinuteBarReader(
-            cls.trading_calendar,
+            cls.exchange_calendar,
             cls.asset_finder,
             readers
         )

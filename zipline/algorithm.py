@@ -12,7 +12,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from collections import Iterable, namedtuple
+from collections.abc import Iterable
+from collections import namedtuple
 from copy import copy
 import warnings
 from datetime import tzinfo, time
@@ -29,8 +30,8 @@ from six import (
     itervalues,
     string_types,
 )
-from trading_calendars.utils.pandas_utils import days_at_time
-from trading_calendars import get_calendar
+from exchange_calendars.utils.pandas_utils import days_at_time
+from exchange_calendars import get_calendar
 
 from zipline._protocol import handle_non_market_minutes
 from zipline.errors import (

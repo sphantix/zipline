@@ -1,3 +1,5 @@
+# cython: language_level=3
+
 cimport cython
 from cpython cimport PyObject
 from libc.math cimport sqrt

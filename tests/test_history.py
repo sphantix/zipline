@@ -82,7 +82,7 @@ class WithHistory(zf.WithCreateBarData, zf.WithDataPortal):
     @classmethod
     def init_class_fixtures(cls):
         super(WithHistory, cls).init_class_fixtures()
-        cls.trading_days = cls.trading_calendar.sessions_in_range(
+        cls.trading_days = cls.exchange_calendar.sessions_in_range(
             cls.TRADING_START_DT,
             cls.TRADING_END_DT
         )
@@ -235,7 +235,7 @@ class WithHistory(zf.WithCreateBarData, zf.WithDataPortal):
     @classmethod
     def make_adjustment_writer_equity_daily_bar_reader(cls):
         return MockDailyBarReader(
-            dates=cls.trading_calendar.sessions_in_range(
+            dates=cls.exchange_calendar.sessions_in_range(
                 cls.TRADING_START_DT,
                 cls.TRADING_END_DT,
             ),
@@ -261,7 +261,7 @@ class WithHistory(zf.WithCreateBarData, zf.WithDataPortal):
 
                 # `dt` may not be a session on the equity calendar, so
                 # find the next valid session.
-                equity_sess = equity_cal.minute_to_session_label(dt)
+                equity_sess = equity_cal.minute_to_session(dt)
                 equity_dts = equity_cal.sessions_window(equity_sess, -9)
             elif mode == 'minute':
                 dts = cal.minutes_window(dt, -10)
@@ -538,7 +538,7 @@ class MinuteEquityHistoryTestCase(WithHistory,
 
     @classmethod
     def make_equity_minute_bar_data(cls):
-        equities_cal = cls.trading_calendars[Equity]
+        equities_cal = cls.exchange_calendars[Equity]
 
         data = {}
         sids = {2, 5, cls.SHORT_ASSET_SID, cls.HALF_DAY_TEST_ASSET_SID}
@@ -1702,7 +1702,7 @@ class DailyEquityHistoryTestCase(WithHistory, zf.ZiplineTestCase):
     @classmethod
     def create_df_for_asset(cls, start_day, end_day, interval=1,
                             force_zeroes=False):
-        sessions = cls.trading_calendars[Equity].sessions_in_range(
+        sessions = cls.exchange_calendars[Equity].sessions_in_range(
             start_day,
             end_day,
         )

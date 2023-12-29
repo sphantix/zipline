@@ -6,7 +6,7 @@ from nose_parameterized import parameterized
 import numpy as np
 import pandas as pd
 
-from trading_calendars import get_calendar
+from exchange_calendars import get_calendar
 
 from zipline.assets.synthetic import make_rotating_equity_info
 from zipline.data.in_memory_daily_bars import InMemoryDailyBarReader

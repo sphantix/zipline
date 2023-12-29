@@ -22,7 +22,7 @@ from nose_parameterized import parameterized
 import pandas as pd
 from six import iteritems
 from six.moves import range, map
-from trading_calendars import get_calendar
+from exchange_calendars import get_calendar
 
 import zipline.utils.events
 from zipline.utils.events import (
@@ -364,10 +364,10 @@ class StatelessRulesTests(RuleTestCase):
             rule = NthTradingDayOfWeek(n)
             rule.cal = self.cal
             should_trigger = rule.should_trigger
-            prev_period = self.cal.minute_to_session_label(self.sept_week[0])
+            prev_period = self.cal.minute_to_session(self.sept_week[0])
             n_tdays = 0
             for minute in self.sept_week:
-                period = self.cal.minute_to_session_label(minute)
+                period = self.cal.minute_to_session(minute)
 
                 if prev_period < period:
                     n_tdays += 1
@@ -386,7 +386,7 @@ class StatelessRulesTests(RuleTestCase):
             for minute in self.sept_week:
                 if should_trigger(minute):
                     n_tdays = 0
-                    session = self.cal.minute_to_session_label(
+                    session = self.cal.minute_to_session(
                         minute,
                         direction="none"
                     )

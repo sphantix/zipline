@@ -23,7 +23,7 @@ from os.path import (
     dirname,
     join,
 )
-from distutils.version import StrictVersion
+from packaging import version as packaging_version
 from setuptools import (
     Extension,
     find_packages,
@@ -153,8 +153,8 @@ def _filter_requirements(lines_iter, filter_names=None,
         if filter_sys_version and match.group('pyspec'):
             pycomp, pyspec = match.group('pycomp', 'pyspec')
             comp = STR_TO_CMP[pycomp]
-            pyver_spec = StrictVersion(pyspec)
-            if comp(SYS_VERSION, pyver_spec):
+            pyver_spec = packaging_version.parse(pyspec)
+            if comp(packaging_version.parse(SYS_VERSION), pyver_spec):
                 # pip install -r understands lines with ;python_version<'3.0',
                 # but pip install -e does not.  Filter here, removing the
                 # env marker.
@@ -204,7 +204,7 @@ def read_requirements(path,
     Read a requirements file, expressed as a path relative to Zipline root.
     """
     real_path = join(dirname(abspath(__file__)), path)
-    with open(real_path) as f:
+    with open(real_path, mode="r", encoding="utf-8") as f:
         reqs = _filter_requirements(f.readlines(), filter_names=filter_names,
                                     filter_sys_version=not conda_format)
 
@@ -225,6 +225,7 @@ def extras_requires(conda_format=False):
         for extra in ('dev', 'talib')
     }
     extras['all'] = [req for reqs in extras.values() for req in reqs]
+    print(extras)
 
     return extras
 
@@ -237,10 +238,7 @@ def setup_requirements(requirements_path, module_names,
                                      filter_names=module_names)
 
     if len(set(module_lines)) != len(module_names):
-        raise AssertionError(
-            "Missing requirements. Looking for %s, but found %s."
-            % (module_names, module_lines)
-        )
+        raise AssertionError(f"Missing requirements. Looking for {module_names}, but found {module_lines}.")
     return module_lines
 
 
@@ -258,7 +256,7 @@ conditional_arguments = {
 }
 
 if 'sdist' in sys.argv:
-    with open('README.rst') as f:
+    with open('README.rst', mode="r", encoding="utf-8") as f:
         conditional_arguments['long_description'] = f.read()
 
 
@@ -288,9 +286,13 @@ setup(
         'License :: OSI Approved :: Apache Software License',
         'Natural Language :: English',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
         'Operating System :: OS Independent',
         'Intended Audience :: Science/Research',
         'Topic :: Office/Business :: Financial',

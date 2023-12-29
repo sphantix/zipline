@@ -15,7 +15,7 @@
 import logbook
 import numpy as np
 import pandas as pd
-from pandas.util.testing import assert_series_equal
+from pandas.testing import assert_series_equal
 
 from zipline.data.data_portal import DataPortal
 from zipline.errors import (
@@ -38,13 +38,13 @@ from zipline.testing.fixtures import (
     WithDataPortal,
     WithSimParams,
     WithTmpDir,
-    WithTradingCalendars,
+    WithExchangeCalendars,
     ZiplineTestCase,
 )
 from zipline.testing.core import make_test_handler
 
 
-class TestBenchmark(WithDataPortal, WithSimParams, WithTradingCalendars,
+class TestBenchmark(WithDataPortal, WithSimParams, WithExchangeCalendars,
                     ZiplineTestCase):
     START_DATE = pd.Timestamp('2006-01-03', tz='utc')
     END_DATE = pd.Timestamp('2006-12-29', tz='utc')
@@ -84,7 +84,7 @@ class TestBenchmark(WithDataPortal, WithSimParams, WithTradingCalendars,
     @classmethod
     def make_adjustment_writer_equity_daily_bar_reader(cls):
         return MockDailyBarReader(
-            dates=cls.trading_calendar.sessions_in_range(
+            dates=cls.exchange_calendar.sessions_in_range(
                 cls.START_DATE,
                 cls.END_DATE,
             ),

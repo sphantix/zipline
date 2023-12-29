@@ -10,7 +10,8 @@ import warnings
 import numpy as np
 import pandas as pd
 from distutils.version import StrictVersion
-from trading_calendars.utils.pandas_utils import days_at_time  # noqa: reexport
+from exchange_calendars.utils.pandas_utils import days_at_time  # noqa: reexport
+from pandas.core.indexing import _AtIndexer, _iAtIndexer, _iLocIndexer, _LocIndexer
 
 pandas_version = StrictVersion(pd.__version__)
 new_pandas = pandas_version >= StrictVersion('0.19')
@@ -218,9 +219,19 @@ def ignore_pandas_nan_categorical_warning():
         )
         yield
 
+# the supported indexers
+def get_indexers_list():
+    """get pandas indexers"""
+
+    return [
+        ('iloc', _iLocIndexer),
+        ('loc', _LocIndexer),
+        ('at', _AtIndexer),
+        ('iat', _iAtIndexer),
+    ]
 
 _INDEXER_NAMES = [
-    '_' + name for (name, _) in pd.core.indexing.get_indexers_list()
+    '_' + name for (name, _) in get_indexers_list()
 ]
 
 

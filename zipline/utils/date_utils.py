@@ -1,4 +1,5 @@
 from toolz import partition_all
+import pandas as pd
 
 
 def compute_date_range_chunks(sessions, start_date, end_date, chunksize):
@@ -40,3 +41,37 @@ def compute_date_range_chunks(sessions, start_date, end_date, chunksize):
             chunksize, sessions[start_ix:end_ix]
         )
     )
+
+def get_datetime_with_tz(dt, tz='UTC'):
+    """
+    Returns a datetime with the given timezone applied.
+
+    Parameters
+    ----------
+    dt : datetime-like
+        The datetime to apply a timezone to.
+    tz : tzinfo or str
+        The timezone to apply.
+
+    Returns
+    -------
+    dt : pd.Timestamp
+        The datetime with the timezone applied.
+    """
+    return pd.Timestamp(dt, tz=tz)
+
+def get_datetime_without_tz(dt):
+    """
+    Returns a datetime with the timezone removed.
+
+    Parameters
+    ----------
+    dt : datetime-like
+        The datetime to remove the timezone from.
+
+    Returns
+    -------
+    dt : pd.Timestamp
+        The datetime with the timezone removed.
+    """
+    return pd.Timestamp(dt).replace(tzinfo=None)

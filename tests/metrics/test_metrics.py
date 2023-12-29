@@ -102,13 +102,13 @@ class TestConstantPrice(WithConstantEquityMinuteBarData,
         )
 
         cls.trading_minutes = pd.Index(
-            cls.trading_calendar.minutes_for_sessions_in_range(
+            cls.exchange_calendar.minutes_for_sessions_in_range(
                 cls.START_DATE,
                 cls.END_DATE,
             ),
         )
         cls.closes = pd.Index(
-            cls.trading_calendar.session_closes_in_range(
+            cls.exchange_calendar.session_closes_in_range(
                 cls.START_DATE,
                 cls.END_DATE,
             ),
@@ -1342,20 +1342,20 @@ class TestFixedReturns(WithMakeAlgo, WithWerror, ZiplineTestCase):
         )
 
         cls.equity_minutes = pd.Index(
-            cls.trading_calendars[Equity].minutes_for_sessions_in_range(
+            cls.exchange_calendars[Equity].minutes_for_sessions_in_range(
                 cls.START_DATE,
                 cls.END_DATE,
             ),
         )
         cls.equity_closes = pd.Index(
-            cls.trading_calendars[Equity].session_closes_in_range(
+            cls.exchange_calendars[Equity].session_closes_in_range(
                 cls.START_DATE,
                 cls.END_DATE,
             ),
         )
         cls.equity_closes.name = None
 
-        futures_cal = cls.trading_calendars[Future]
+        futures_cal = cls.exchange_calendars[Future]
         cls.future_minutes = pd.Index(
             futures_cal.execution_minutes_for_sessions_in_range(
                 cls.START_DATE,
@@ -1485,14 +1485,14 @@ class TestFixedReturns(WithMakeAlgo, WithWerror, ZiplineTestCase):
     @classmethod
     def make_equity_minute_bar_data(cls):
         return cls._make_minute_bar_data(
-            cls.trading_calendars[Equity],
+            cls.exchange_calendars[Equity],
             cls.asset_finder.equities_sids,
         )
 
     @classmethod
     def make_future_minute_bar_data(cls):
         return cls._make_minute_bar_data(
-            cls.trading_calendars[Future],
+            cls.exchange_calendars[Future],
             cls.asset_finder.futures_sids,
         )
 

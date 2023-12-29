@@ -2,7 +2,7 @@ from __future__ import division
 
 import numpy as np
 import pandas as pd
-from trading_calendars import get_calendar
+from exchange_calendars import get_calendar
 
 from zipline.data.bundles import ingest, load, bundles
 from zipline.testing import test_resource_path

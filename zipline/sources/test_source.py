@@ -77,10 +77,10 @@ def date_gen(start,
             return cur
         else:
             if daily_delta:
-                return trading_calendar.minute_to_session_label(cur)
+                return trading_calendar.minute_to_session(cur)
             else:
                 return trading_calendar.open_and_close_for_session(
-                    trading_calendar.minute_to_session_label(cur)
+                    trading_calendar.minute_to_session(cur)
                 )[0]
 
     # yield count trade events, all on trading days, and

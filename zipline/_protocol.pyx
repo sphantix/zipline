@@ -12,6 +12,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+# cython: language_level=3
+
 import warnings
 from contextlib import contextmanager
 from functools import wraps
@@ -21,7 +23,7 @@ import numpy as np
 
 from six import iteritems, PY2, string_types
 from cpython cimport bool
-from collections import Iterable
+from collections.abc import Iterable
 
 from zipline.assets import (
     AssetConvertible,

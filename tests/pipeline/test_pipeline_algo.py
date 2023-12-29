@@ -28,7 +28,7 @@ from pandas import (
     Timestamp,
 )
 from six import iteritems, itervalues
-from trading_calendars import get_calendar
+from exchange_calendars import get_calendar
 
 from zipline.api import (
     attach_pipeline,
@@ -153,7 +153,7 @@ class ClosesAndVolumes(WithMakeAlgo, ZiplineTestCase):
         cls.last_asset_end = max(cls.equity_info.end_date)
         cls.assets = cls.asset_finder.retrieve_all(cls.asset_finder.sids)
 
-        cls.trading_day = cls.trading_calendar.day
+        cls.trading_day = cls.exchange_calendar.day
 
         # Add a split for 'A' on its second date.
         cls.split_asset = cls.assets[0]
@@ -173,7 +173,7 @@ class ClosesAndVolumes(WithMakeAlgo, ZiplineTestCase):
         cls.default_sim_params = SimulationParameters(
             start_session=cls.first_asset_start,
             end_session=cls.last_asset_end,
-            trading_calendar=cls.trading_calendar,
+            trading_calendar=cls.exchange_calendar,
             emission_rate='daily',
             data_frequency='daily',
         )

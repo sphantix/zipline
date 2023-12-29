@@ -14,7 +14,7 @@ _dt_to_period = {
     'year_start': attrgetter('year'),
     'quarter_start': attrgetter('quarter'),
     'month_start': attrgetter('month'),
-    'week_start': attrgetter('week'),
+    'week_start': lambda x: x.isocalendar().week,
 }
 
 SUPPORTED_DOWNSAMPLE_FREQUENCIES = frozenset(_dt_to_period)

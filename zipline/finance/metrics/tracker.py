@@ -58,9 +58,11 @@ class MetricsTracker(object):
 
     @staticmethod
     def _execution_open_and_close(calendar, session):
-        open_, close = calendar.open_and_close_for_session(session)
-        execution_open = calendar.execution_time_from_open(open_)
-        execution_close = calendar.execution_time_from_close(close)
+        if session.tzinfo is not None:
+            session = session.tz_localize(None)
+
+        execution_open = calendar.session_first_minute(session)
+        execution_close = calendar.session_close(session)
 
         return execution_open, execution_close
 

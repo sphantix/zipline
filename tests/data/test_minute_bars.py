@@ -50,7 +50,7 @@ from zipline.data.minute_bars import (
 from zipline.testing.fixtures import (
     WithAssetFinder,
     WithInstanceTmpDir,
-    WithTradingCalendars,
+    WithExchangeCalendars,
     ZiplineTestCase,
 )
 
@@ -61,7 +61,7 @@ TEST_CALENDAR_START = Timestamp('2014-06-02', tz='UTC')
 TEST_CALENDAR_STOP = Timestamp('2015-12-31', tz='UTC')
 
 
-class BcolzMinuteBarTestCase(WithTradingCalendars,
+class BcolzMinuteBarTestCase(WithExchangeCalendars,
                              WithAssetFinder,
                              WithInstanceTmpDir,
                              ZiplineTestCase):
@@ -72,7 +72,7 @@ class BcolzMinuteBarTestCase(WithTradingCalendars,
     def init_class_fixtures(cls):
         super(BcolzMinuteBarTestCase, cls).init_class_fixtures()
 
-        cal = cls.trading_calendar.schedule.loc[
+        cal = cls.exchange_calendar.schedule.loc[
             TEST_CALENDAR_START:TEST_CALENDAR_STOP
         ]
 
@@ -927,8 +927,8 @@ class BcolzMinuteBarTestCase(WithTradingCalendars,
             'volume': arange(1, 781)
         }
         dts = array(self.trading_calendar.minutes_for_sessions_in_range(
-            self.trading_calendar.minute_to_session_label(start_day),
-            self.trading_calendar.minute_to_session_label(end_day)
+            self.trading_calendar.minute_to_session(start_day),
+            self.trading_calendar.minute_to_session(end_day)
         ))
 
         self.writer.write_cols(sid, dts, cols)
@@ -975,8 +975,8 @@ class BcolzMinuteBarTestCase(WithTradingCalendars,
         }
         dts = array(
             self.trading_calendar.minutes_for_sessions_in_range(
-                self.trading_calendar.minute_to_session_label(start_day),
-                self.trading_calendar.minute_to_session_label(end_day)
+                self.trading_calendar.minute_to_session(start_day),
+                self.trading_calendar.minute_to_session(end_day)
             )
         )
 

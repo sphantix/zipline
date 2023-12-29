@@ -82,7 +82,7 @@ class DataPortalTestBase(WithDataPortal,
 
     @classmethod
     def make_equity_minute_bar_data(cls):
-        trading_calendar = cls.trading_calendars[Equity]
+        trading_calendar = cls.exchange_calendars[Equity]
         # No data on first day.
         dts = trading_calendar.minutes_for_session(cls.trading_days[0])
         dfs = []
@@ -145,7 +145,7 @@ class DataPortalTestBase(WithDataPortal,
 
     @classmethod
     def make_future_minute_bar_data(cls):
-        trading_calendar = cls.trading_calendars[Future]
+        trading_calendar = cls.exchange_calendars[Future]
         trading_sessions = cls.trading_sessions['us_futures']
         # No data on first day, future asset intentionally not on the same
         # dates as equities, so that cross-wiring of results do not create a

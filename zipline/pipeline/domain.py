@@ -22,7 +22,7 @@ import numpy as np
 import pandas as pd
 import pytz
 
-from trading_calendars import get_calendar
+from exchange_calendars import get_calendar
 
 from zipline.country import CountryCode
 from zipline.utils.formatting import bulleted_list
@@ -86,7 +86,7 @@ class IDomain(Interface):
         -------
         pd.Timestamp
         """
-        dt = pd.Timestamp(dt, tz='UTC')
+        dt = pd.Timestamp(dt)
 
         trading_days = self.all_sessions()
         try:
@@ -191,10 +191,10 @@ class EquityCalendarDomain(Domain):
         return get_calendar(self.calendar_name)
 
     def all_sessions(self):
-        return self.calendar.all_sessions
+        return self.calendar.sessions
 
     def data_query_cutoff_for_sessions(self, sessions):
-        opens = self.calendar.opens.loc[sessions].values
+        opens = self.calendar.first_minutes.reindex(sessions)
         missing_mask = pd.isnull(opens)
         if missing_mask.any():
             missing_days = sessions[missing_mask]
@@ -206,7 +206,7 @@ class EquityCalendarDomain(Domain):
                 ),
             )
 
-        return pd.DatetimeIndex(opens + self._data_query_offset, tz='UTC')
+        return pd.DatetimeIndex(opens) + self._data_query_offset
 
     def __repr__(self):
         return "EquityCalendarDomain({!r}, {!r})".format(
@@ -226,6 +226,7 @@ CN_EQUITIES = EquityCalendarDomain(CountryCode.CHINA, 'XSHG')
 CO_EQUITIES = EquityCalendarDomain(CountryCode.COLOMBIA, 'XBOG')
 CZ_EQUITIES = EquityCalendarDomain(CountryCode.CZECH_REPUBLIC, 'XPRA')
 DE_EQUITIES = EquityCalendarDomain(CountryCode.GERMANY, 'XFRA')
+DE_EQUITIES_XETR = EquityCalendarDomain(CountryCode.GERMANY, 'XETR')
 DK_EQUITIES = EquityCalendarDomain(CountryCode.DENMARK, 'XCSE')
 ES_EQUITIES = EquityCalendarDomain(CountryCode.SPAIN, 'XMAD')
 FI_EQUITIES = EquityCalendarDomain(CountryCode.FINLAND, 'XHEL')
@@ -236,10 +237,13 @@ HK_EQUITIES = EquityCalendarDomain(CountryCode.HONG_KONG, 'XHKG')
 HU_EQUITIES = EquityCalendarDomain(CountryCode.HUNGARY, 'XBUD')
 ID_EQUITIES = EquityCalendarDomain(CountryCode.INDONESIA, 'XIDX')
 IE_EQUITIES = EquityCalendarDomain(CountryCode.IRELAND, 'XDUB')
+IL_EQUITIES = EquityCalendarDomain(CountryCode.ISRAEL, 'XTAE')
 IN_EQUITIES = EquityCalendarDomain(CountryCode.INDIA, "XBOM")
+IS_EQUITIES = EquityCalendarDomain(CountryCode.ICELAND, 'XICE')
 IT_EQUITIES = EquityCalendarDomain(CountryCode.ITALY, 'XMIL')
 JP_EQUITIES = EquityCalendarDomain(CountryCode.JAPAN, 'XTKS')
 KR_EQUITIES = EquityCalendarDomain(CountryCode.SOUTH_KOREA, 'XKRX')
+KZ_EQUITIES = EquityCalendarDomain(CountryCode.KAZAKHSTAN, 'AIXK')
 MX_EQUITIES = EquityCalendarDomain(CountryCode.MEXICO, 'XMEX')
 MY_EQUITIES = EquityCalendarDomain(CountryCode.MALAYSIA, 'XKLS')
 NL_EQUITIES = EquityCalendarDomain(CountryCode.NETHERLANDS, 'XAMS')
@@ -250,14 +254,28 @@ PH_EQUITIES = EquityCalendarDomain(CountryCode.PHILIPPINES, 'XPHS')
 PK_EQUITIES = EquityCalendarDomain(CountryCode.PAKISTAN, 'XKAR')
 PL_EQUITIES = EquityCalendarDomain(CountryCode.POLAND, 'XWAR')
 PT_EQUITIES = EquityCalendarDomain(CountryCode.PORTUGAL, 'XLIS')
+RO_EQUITIES = EquityCalendarDomain(CountryCode.ROMANIA, 'XBSE')
 RU_EQUITIES = EquityCalendarDomain(CountryCode.RUSSIA, 'XMOS')
+SA_EQUITIES = EquityCalendarDomain(CountryCode.SAUDI_ARABIA, 'XSAU')
 SE_EQUITIES = EquityCalendarDomain(CountryCode.SWEDEN, 'XSTO')
 SG_EQUITIES = EquityCalendarDomain(CountryCode.SINGAPORE, 'XSES')
 TH_EQUITIES = EquityCalendarDomain(CountryCode.THAILAND, 'XBKK')
 TR_EQUITIES = EquityCalendarDomain(CountryCode.TURKEY, 'XIST')
 TW_EQUITIES = EquityCalendarDomain(CountryCode.TAIWAN, 'XTAI')
 US_EQUITIES = EquityCalendarDomain(CountryCode.UNITED_STATES, 'XNYS')
+US_EQUITIES_EXTENDED_HOURS = EquityCalendarDomain(CountryCode.UNITED_STATES, 'us_extended_hours')
 ZA_EQUITIES = EquityCalendarDomain(CountryCode.SOUTH_AFRICA, 'XJSE')
+
+CME_FUTURES = EquityCalendarDomain(CountryCode.UNITED_STATES, 'CMES')
+CME_EQUITY_FUTURES = EquityCalendarDomain(CountryCode.UNITED_STATES, 'CME_EQUITY')
+CME_EQUITY_LIQUID_FUTURES = EquityCalendarDomain(CountryCode.UNITED_STATES, 'CME_EQUITY_LIQUID')
+CBOT_FUTURES = EquityCalendarDomain(CountryCode.UNITED_STATES, 'CBOT')
+IEPA_FUTURES = EquityCalendarDomain(CountryCode.UNITED_STATES, 'IEPA')
+XCBF_FUTURES = EquityCalendarDomain(CountryCode.UNITED_STATES, 'XCBF')
+US_FUTURES = EquityCalendarDomain(CountryCode.UNITED_STATES, 'us_futures')
+
+WEEKDAY_EQUITIES = EquityCalendarDomain(CountryCode.UNITED_STATES, '24/5')
+ALWAYS_OPEN_EQUITIES = EquityCalendarDomain(CountryCode.UNITED_STATES, '24/7')
 
 BUILT_IN_DOMAINS = [
     AR_EQUITIES,
@@ -272,6 +290,7 @@ BUILT_IN_DOMAINS = [
     CO_EQUITIES,
     CZ_EQUITIES,
     DE_EQUITIES,
+    DE_EQUITIES_XETR,
     DK_EQUITIES,
     ES_EQUITIES,
     FI_EQUITIES,
@@ -282,10 +301,13 @@ BUILT_IN_DOMAINS = [
     HU_EQUITIES,
     ID_EQUITIES,
     IE_EQUITIES,
+    IL_EQUITIES,
     IN_EQUITIES,
+    IS_EQUITIES,
     IT_EQUITIES,
     JP_EQUITIES,
     KR_EQUITIES,
+    KZ_EQUITIES,
     MX_EQUITIES,
     MY_EQUITIES,
     NL_EQUITIES,
@@ -296,16 +318,38 @@ BUILT_IN_DOMAINS = [
     PK_EQUITIES,
     PL_EQUITIES,
     PT_EQUITIES,
+    RO_EQUITIES,
     RU_EQUITIES,
+    SA_EQUITIES,
     SE_EQUITIES,
     SG_EQUITIES,
     TH_EQUITIES,
     TR_EQUITIES,
     TW_EQUITIES,
     US_EQUITIES,
+    US_EQUITIES_EXTENDED_HOURS,
     ZA_EQUITIES,
+    CME_FUTURES,
+    CME_EQUITY_FUTURES,
+    CME_EQUITY_LIQUID_FUTURES,
+    CBOT_FUTURES,
+    IEPA_FUTURES,
+    XCBF_FUTURES,
+    US_FUTURES,
+    WEEKDAY_EQUITIES,
+    ALWAYS_OPEN_EQUITIES,
 ]
 
+_BUILT_IN_DOMAINS_BY_CALENDAR_NAME = {
+    domain.calendar_name: domain
+    for domain in BUILT_IN_DOMAINS
+}
+
+def get_domain_from_calendar(calendar):
+    """
+    Returns a Domain from a trading calendar.
+    """
+    return _BUILT_IN_DOMAINS_BY_CALENDAR_NAME.get(calendar.name, GENERIC)
 
 def infer_domain(terms):
     """
@@ -326,7 +370,7 @@ def infer_domain(terms):
 
     Returns
     -------
-    inferred : Domain or NotSpecified
+    inferred : Domain or None
 
     Raises
     ------

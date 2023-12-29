@@ -32,7 +32,7 @@ from pandas import (
 )
 from six import iteritems, viewkeys
 from toolz import compose
-from trading_calendars import get_calendar
+from exchange_calendars import get_calendar
 
 from zipline.data.session_bars import CurrencyAwareSessionBarReader
 from zipline.data.bar_reader import (
@@ -147,13 +147,9 @@ class BcolzDailyBarWriter(object):
 
         if start_session != end_session:
             if not calendar.is_session(start_session):
-                raise ValueError(
-                    "Start session %s is invalid!" % start_session
-                )
+                raise ValueError(f"Start session {start_session} is invalid!")
             if not calendar.is_session(end_session):
-                raise ValueError(
-                    "End session %s is invalid!" % end_session
-                )
+                raise ValueError(f"End session {end_session} is invalid!")
 
         self._start_session = start_session
         self._end_session = end_session
@@ -296,7 +292,7 @@ class BcolzDailyBarWriter(object):
             total_rows += nrows
 
             table_day_to_session = compose(
-                self._calendar.minute_to_session_label,
+                self._calendar.minute_to_session,
                 partial(Timestamp, unit='s', tz='UTC'),
             )
             asset_first_day = table_day_to_session(table['day'][0])
@@ -462,21 +458,24 @@ class BcolzDailyBarReader(CurrencyAwareSessionBarReader):
         return ctable(rootdir=maybe_table_rootdir, mode='r')
 
     @lazyval
+    def calendar(self):
+        return get_calendar(self._table.attrs['calendar_name'])
+
+    @lazyval
     def sessions(self):
-        if 'calendar' in self._table.attrs.attrs:
-            # backwards compatibility with old formats, will remove
-            return DatetimeIndex(self._table.attrs['calendar'], tz='UTC')
-        else:
-            cal = get_calendar(self._table.attrs['calendar_name'])
-            start_session_ns = self._table.attrs['start_session_ns']
-            start_session = Timestamp(start_session_ns, tz='UTC')
+        """
+        Returns sessions bounded by the start date and end date of the bundle data
+        """
 
-            end_session_ns = self._table.attrs['end_session_ns']
-            end_session = Timestamp(end_session_ns, tz='UTC')
+        start_session_ns = self._table.attrs['start_session_ns']
+        start_session = Timestamp(start_session_ns)
 
-            sessions = cal.sessions_in_range(start_session, end_session)
+        end_session_ns = self._table.attrs['end_session_ns']
+        end_session = Timestamp(end_session_ns)
 
-            return sessions
+        sessions = self.calendar.sessions_in_range(start_session, end_session)
+
+        return sessions
 
     @lazyval
     def _first_rows(self):

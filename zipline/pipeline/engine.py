@@ -216,7 +216,7 @@ def default_populate_initial_workspace(initial_workspace,
     dates : pd.DatetimeIndex
         All of the dates being requested in this pipeline run including
         the extra dates for look back windows.
-    assets : pd.Int64Index
+    assets : pd.Index[int]
         All of the assets that exist for the window being computed.
 
     Returns
@@ -603,7 +603,7 @@ class SimplePipelineEngine(PipelineEngine):
             Dependency graph of the terms to be executed.
         dates : pd.DatetimeIndex
             Row labels for our root mask.
-        sids : pd.Int64Index
+        sids : pd.Index[int]
             Column labels for our root mask.
         workspace : dict
             Map from term -> output.
@@ -932,9 +932,8 @@ def _pipeline_output_index(dates, assets, mask):
     date_labels = repeat_last_axis(arange(len(dates)), len(assets))[mask]
     asset_labels = repeat_first_axis(arange(len(assets)), len(dates))[mask]
     return MultiIndex(
-        levels=[dates, assets],
-        labels=[date_labels, asset_labels],
-        # TODO: We should probably add names for these.
-        names=[None, None],
+        [dates, assets],
+        [date_labels, asset_labels],
+        names=["date", "asset"],
         verify_integrity=False,
     )

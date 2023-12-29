@@ -1,4 +1,6 @@
-from numpy cimport ndarray, long_t
+# cython: language_level=3
+
+from numpy cimport ndarray, int_t
 from numpy import searchsorted
 from cpython cimport bool
 cimport cython
@@ -6,7 +8,7 @@ cimport cython
 cdef inline int int_min(int a, int b): return a if a <= b else b
 
 @cython.cdivision(True)
-def minute_value(ndarray[long_t, ndim=1] market_opens,
+def minute_value(ndarray[int_t, ndim=1] market_opens,
                  Py_ssize_t pos,
                  short minutes_per_day):
     """
@@ -35,9 +37,9 @@ def minute_value(ndarray[long_t, ndim=1] market_opens,
 
     return market_opens[q] + r
 
-def find_position_of_minute(ndarray[long_t, ndim=1] market_opens,
-                            ndarray[long_t, ndim=1] market_closes,
-                            long_t minute_val,
+def find_position_of_minute(ndarray[int_t, ndim=1] market_opens,
+                            ndarray[int_t, ndim=1] market_closes,
+                            int_t minute_val,
                             short minutes_per_day,
                             bool forward_fill):
     """
@@ -89,10 +91,10 @@ def find_position_of_minute(ndarray[long_t, ndim=1] market_opens,
     return (market_open_loc * minutes_per_day) + delta
 
 def find_last_traded_position_internal(
-        ndarray[long_t, ndim=1] market_opens,
-        ndarray[long_t, ndim=1] market_closes,
-        long_t end_minute,
-        long_t start_minute,
+        ndarray[int_t, ndim=1] market_opens,
+        ndarray[int_t, ndim=1] market_closes,
+        int_t end_minute,
+        int_t start_minute,
         volumes,
         short minutes_per_day):
 

@@ -51,7 +51,7 @@ _multiprocess_can_split_ = False
 
 
 class FinanceTestCase(zf.WithAssetFinder,
-                      zf.WithTradingCalendars,
+                      zf.WithExchangeCalendars,
                       zf.ZiplineTestCase):
     ASSET_FINDER_EQUITY_SIDS = 1, 2, 133
     start = START_DATE = pd.Timestamp('2006-01-01', tz='utc')
@@ -211,10 +211,10 @@ class FinanceTestCase(zf.WithAssetFinder,
                 write_bcolz_minute_data(
                     self.trading_calendar,
                     self.trading_calendar.sessions_in_range(
-                        self.trading_calendar.minute_to_session_label(
+                        self.trading_calendar.minute_to_session(
                             minutes[0]
                         ),
-                        self.trading_calendar.minute_to_session_label(
+                        self.trading_calendar.minute_to_session(
                             minutes[-1]
                         )
                     ),
@@ -401,7 +401,7 @@ class FinanceTestCase(zf.WithAssetFinder,
         self.assertEqual(2, asset2_order.asset)
 
 
-class SimParamsTestCase(zf.WithTradingCalendars, zf.ZiplineTestCase):
+class SimParamsTestCase(zf.WithExchangeCalendars, zf.ZiplineTestCase):
     """
     Tests for date management utilities in zipline.finance.trading.
     """
@@ -431,7 +431,7 @@ class SimParamsTestCase(zf.WithTradingCalendars, zf.ZiplineTestCase):
             start_session=pd.Timestamp("2007-12-31", tz='UTC'),
             end_session=pd.Timestamp("2008-01-07", tz='UTC'),
             capital_base=100000,
-            trading_calendar=self.trading_calendar,
+            trading_calendar=self.exchange_calendar,
         )
 
         expected_trading_days = (

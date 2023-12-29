@@ -204,10 +204,10 @@ class ContinuousFuturesTestCase(zf.WithCreateBarData,
 
     @classmethod
     def make_future_minute_bar_data(cls):
-        tc = cls.trading_calendar
+        tc = cls.exchange_calendar
         start = pd.Timestamp('2016-01-26', tz='UTC')
         end = pd.Timestamp('2016-04-29', tz='UTC')
-        dts = tc.minutes_for_sessions_in_range(start, end)
+        dts = tc.sessions_minutes(start, end)
         sessions = tc.sessions_in_range(start, end)
         # Generate values in the XXY.YYY space, with XX representing the
         # session and Y.YYY representing the minute within the session.
@@ -1284,14 +1284,14 @@ class RollFinderTestCase(zf.WithBcolzFutureDailyBarReader,
         super(RollFinderTestCase, cls).init_class_fixtures()
 
         cls.volume_roll_finder = VolumeRollFinder(
-            cls.trading_calendar,
+            cls.exchange_calendar,
             cls.asset_finder,
             cls.bcolz_future_daily_bar_reader,
         )
 
     @classmethod
     def make_futures_info(cls):
-        day = cls.trading_calendar.day
+        day = cls.exchange_calendar.day
         two_days = 2 * day
         end_buffer_days = ROLL_DAYS_FOR_CURRENT_CONTRACT * day
 
@@ -1450,7 +1450,7 @@ ACD -> 2017-05-19        0        0        0        0     3000 `---1000--> 2000
         A volume of zero here is used to represent the fact that a contract no
         longer exists.
         """
-        date_index = cls.trading_calendar.sessions_in_range(
+        date_index = cls.exchange_calendar.sessions_in_range(
             cls.START_DATE, cls.END_DATE,
         )
 

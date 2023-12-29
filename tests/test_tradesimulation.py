@@ -39,8 +39,8 @@ class TestBeforeTradingStartTiming(zf.WithMakeAlgo,
     # 13 14 15 16 17 18 19
     # 20 21 22 23 24 25 26
     # 27 28 29 30 31
-    START_DATE = pd.Timestamp('2016-03-10', tz='UTC')
-    END_DATE = pd.Timestamp('2016-03-15', tz='UTC')
+    START_DATE = pd.Timestamp('2016-03-10')
+    END_DATE = pd.Timestamp('2016-03-15')
 
     @parameter_space(
         num_sessions=[1, 2, 3],
@@ -77,9 +77,9 @@ class TestBeforeTradingStartTiming(zf.WithMakeAlgo,
 
         self.assertEqual(len(bts_times), num_sessions)
         expected_times = [
-            pd.Timestamp('2016-03-11 8:45', tz='US/Eastern').tz_convert('UTC'),
-            pd.Timestamp('2016-03-14 8:45', tz='US/Eastern').tz_convert('UTC'),
-            pd.Timestamp('2016-03-15 8:45', tz='US/Eastern').tz_convert('UTC'),
+            pd.Timestamp('2016-03-11 8:45', tz='US/Eastern').tz_convert('UTC').replace(tzinfo=None),
+            pd.Timestamp('2016-03-14 8:45', tz='US/Eastern').tz_convert('UTC').replace(tzinfo=None),
+            pd.Timestamp('2016-03-15 8:45', tz='US/Eastern').tz_convert('UTC').replace(tzinfo=None),
         ]
         self.assertEqual(bts_times, expected_times[:num_sessions])
 
@@ -107,7 +107,7 @@ def initialize(context):
         benchmark_source = algo._create_benchmark_source()
         algo.metrics_tracker.handle_start_of_simulation(benchmark_source)
 
-        dt = pd.Timestamp("2016-08-04 9:13:14", tz='US/Eastern')
+        dt = pd.Timestamp("2016-08-04 9:13:14", tz='US/Eastern').replace(tzinfo=None)
         algo_simulator = AlgorithmSimulator(
             algo,
             self.sim_params,

@@ -260,7 +260,7 @@ class DataPortal(object):
         }
 
         self._daily_aggregator = DailyHistoryAggregator(
-            self.trading_calendar.schedule.market_open,
+            self.trading_calendar.first_minutes,
             _dispatch_minute_reader,
             self.trading_calendar
         )
@@ -284,16 +284,15 @@ class DataPortal(object):
         self._first_trading_day = first_trading_day
 
         # Get the first trading minute
-        self._first_trading_minute, _ = (
-            self.trading_calendar.open_and_close_for_session(
-                self._first_trading_day
-            )
-            if self._first_trading_day is not None else (None, None)
+        self._first_trading_minute = (
+            self.trading_calendar.session_first_minute(self._first_trading_day)
+            if self._first_trading_day is not None
+            else (None, None)
         )
 
         # Store the locs of the first day and first minute
         self._first_trading_day_loc = (
-            self.trading_calendar.all_sessions.get_loc(self._first_trading_day)
+            self.trading_calendar.sessions.get_loc(self._first_trading_day)
             if self._first_trading_day is not None else None
         )
 
@@ -513,7 +512,7 @@ class DataPortal(object):
                     .format(type(assets))
                 )
 
-        session_label = self.trading_calendar.minute_to_session_label(dt)
+        session_label = self.trading_calendar.minute_to_session(dt)
 
         if assets_is_scalar:
             return self._get_single_asset_value(
@@ -565,7 +564,7 @@ class DataPortal(object):
             'last_traded' the value will be a Timestamp.
         """
         return self._get_single_asset_value(
-            self.trading_calendar.minute_to_session_label(dt),
+            self.trading_calendar.minute_to_session(dt),
             asset,
             field,
             dt,
@@ -794,7 +793,7 @@ class DataPortal(object):
         Internal method that returns a dataframe containing history bars
         of daily frequency for the given sids.
         """
-        session = self.trading_calendar.minute_to_session_label(end_dt)
+        session = self.trading_calendar.minute_to_session(end_dt)
         days_for_window = self._get_days_for_window(session, bar_count)
 
         if len(assets) == 0:
@@ -871,7 +870,7 @@ class DataPortal(object):
             if self._first_trading_minute is not None else None
         )
 
-        suggested_start_day = cal.minute_to_session_label(
+        suggested_start_day = cal.minute_to_session(
             cal.all_minutes[
                 first_trading_minute_loc + bar_count
             ] + cal.day
@@ -1288,7 +1287,7 @@ class DataPortal(object):
 
         cal = self.trading_calendar
 
-        ending_session = cal.minute_to_session_label(
+        ending_session = cal.minute_to_session(
             ending_minute,
             direction="none",  # It's an error to pass a non-trading minute.
         )
@@ -1298,7 +1297,7 @@ class DataPortal(object):
         # minute and the start of the session). We add one so that we include
         # the ending minute in the total.
         ending_session_minute_count = timedelta_to_integral_minutes(
-            ending_minute - cal.open_and_close_for_session(ending_session)[0]
+            ending_minute - cal.session_open_close(ending_session)[0]
         ) + 1
 
         if days_count == 1:
@@ -1402,7 +1401,7 @@ class DataPortal(object):
             is the next upcoming contract and so on.
         """
         rf = self._roll_finders[continuous_future.roll_style]
-        session = self.trading_calendar.minute_to_session_label(dt)
+        session = self.trading_calendar.minute_to_session(dt)
         contract_center = rf.get_contract_center(
             continuous_future.root_symbol, session,
             continuous_future.offset)

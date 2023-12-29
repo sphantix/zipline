@@ -510,10 +510,9 @@ class DataQueryCutoffForSessionTestCase(zf.ZiplineTestCase):
     def test_equity_session_domain(self, parameters):
         time, date_offset, expected_timedelta = parameters
         naive_sessions = pd.date_range('2000-01-01', '2000-06-01')
-        utc_sessions = naive_sessions.tz_localize('UTC')
 
         domain = EquitySessionDomain(
-            utc_sessions,
+            naive_sessions,
             CountryCode.UNITED_STATES,
             data_query_time=time,
             data_query_date_offset=date_offset,
@@ -522,8 +521,8 @@ class DataQueryCutoffForSessionTestCase(zf.ZiplineTestCase):
         # Adding and localizing the naive_sessions here because pandas 18
         # crashes when adding a tz-aware DatetimeIndex and a
         # TimedeltaIndex. :sadpanda:.
-        expected = (naive_sessions + expected_timedelta).tz_localize('utc')
-        actual = domain.data_query_cutoff_for_sessions(utc_sessions)
+        expected = (naive_sessions + expected_timedelta)
+        actual = domain.data_query_cutoff_for_sessions(naive_sessions)
 
         assert_equal(expected, actual)
 

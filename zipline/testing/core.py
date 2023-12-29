@@ -25,7 +25,7 @@ from six.moves import filter, map
 from sqlalchemy import create_engine
 from testfixtures import TempDirectory
 from toolz import concat, curry
-from trading_calendars import get_calendar
+from exchange_calendars import get_calendar
 
 from zipline.assets import AssetFinder, AssetDBWriter
 from zipline.assets.synthetic import make_simple_equity_info
@@ -421,10 +421,10 @@ class ExplodingObject(object):
 
 
 def write_minute_data(trading_calendar, tempdir, minutes, sids):
-    first_session = trading_calendar.minute_to_session_label(
+    first_session = trading_calendar.minute_to_session(
         minutes[0], direction="none"
     )
-    last_session = trading_calendar.minute_to_session_label(
+    last_session = trading_calendar.minute_to_session(
         minutes[-1], direction="none"
     )
 
@@ -531,7 +531,7 @@ def create_minute_df_for_asset(trading_calendar,
                                start_val=1,
                                minute_blacklist=None):
 
-    asset_minutes = trading_calendar.minutes_for_sessions_in_range(
+    asset_minutes = trading_calendar.sessions_minutes(
         start_dt, end_dt
     )
     minutes_count = len(asset_minutes)
@@ -734,7 +734,7 @@ class FakeDataPortal(DataPortal):
 
         if frequency == "1m" and not df.empty:
             df = df.reindex(
-                self.trading_calendar.minutes_for_sessions_in_range(
+                self.trading_calendar.sessions_minutes(
                     df.index[0],
                     df.index[-1],
                 ),
@@ -1171,7 +1171,7 @@ def parameter_space(__fail_fast=_FAIL_FAST_DEFAULT, **params):
         argspec = getargspec(f)
         if argspec.varargs:
             raise AssertionError("parameter_space() doesn't support *args")
-        if argspec.keywords:
+        if argspec.varkw:
             raise AssertionError("parameter_space() doesn't support **kwargs")
         if argspec.defaults:
             raise AssertionError("parameter_space() doesn't support defaults.")
@@ -1274,7 +1274,7 @@ def make_alternating_boolean_array(shape, first_value=True):
         raise ValueError(
             'Shape must be 2-dimensional. Given shape was {}'.format(shape)
         )
-    alternating = np.empty(shape, dtype=np.bool)
+    alternating = np.empty(shape, dtype=bool)
     for row in alternating:
         row[::2] = first_value
         row[1::2] = not(first_value)
@@ -1307,7 +1307,7 @@ def make_cascading_boolean_array(shape, first_value=True):
         raise ValueError(
             'Shape must be 2-dimensional. Given shape was {}'.format(shape)
         )
-    cascading = np.full(shape, not(first_value), dtype=np.bool)
+    cascading = np.full(shape, not(first_value), dtype=bool)
     ending_col = shape[1] - 1
     for row in cascading:
         if ending_col > 0:

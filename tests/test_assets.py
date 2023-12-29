@@ -89,7 +89,7 @@ from zipline.testing.predicates import assert_equal, assert_not_equal
 from zipline.testing.fixtures import (
     WithAssetFinder,
     ZiplineTestCase,
-    WithTradingCalendars,
+    WithExchangeCalendars,
     WithTmpDir,
     WithInstanceTmpDir,
 )
@@ -517,7 +517,7 @@ class TestFuture(WithAssetFinder, ZiplineTestCase):
             TestFuture.asset_finder.lookup_future_symbol('XXX99')
 
 
-class AssetFinderTestCase(WithTradingCalendars, ZiplineTestCase):
+class AssetFinderTestCase(WithExchangeCalendars, ZiplineTestCase):
     asset_finder_type = AssetFinder
 
     def write_assets(self, **kwargs):
@@ -1559,7 +1559,7 @@ class AssetFinderTestCase(WithTradingCalendars, ZiplineTestCase):
             )
 
 
-class AssetFinderMultipleCountries(WithTradingCalendars, ZiplineTestCase):
+class AssetFinderMultipleCountries(WithExchangeCalendars, ZiplineTestCase):
     def write_assets(self, **kwargs):
         self._asset_writer.write(**kwargs)
 

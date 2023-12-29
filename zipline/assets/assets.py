@@ -69,6 +69,7 @@ from .asset_writer import (
     SQLITE_MAX_VARIABLE_NUMBER,
 )
 from .asset_db_schema import (
+    version_info,
     ASSET_DB_VERSION
 )
 from .exchange_info import ExchangeInfo
@@ -167,7 +168,8 @@ def build_ownership_map(table, key_from_row, value_from_row):
     )
 
 
-def build_grouped_ownership_map(table,
+def build_grouped_ownership_map(engine,
+                                table,
                                 key_from_row,
                                 value_from_row,
                                 group_key):
@@ -175,9 +177,13 @@ def build_grouped_ownership_map(table,
     Builds a dict mapping group keys to maps of keys to lists of
     OwnershipPeriods, from a db table.
     """
+    conn= engine.connect()
+    results = conn.execute(sa.select(table.c)).fetchall()
+    conn.close()
+
     grouped_rows = groupby(
         group_key,
-        sa.select(table.c).execute().fetchall(),
+        results,
     )
     return {
         key: _build_ownership_map_from_rows(
@@ -298,13 +304,13 @@ class AssetFinder(object):
     @preprocess(engine=coerce_string_to_eng(require_exists=True))
     def __init__(self, engine, future_chain_predicates=CHAIN_PREDICATES):
         self.engine = engine
-        metadata = sa.MetaData(bind=engine)
-        metadata.reflect(only=asset_db_table_names)
+        metadata = sa.MetaData()
+        metadata.reflect(bind=self.engine, only=asset_db_table_names)
         for table_name in asset_db_table_names:
             setattr(self, table_name, metadata.tables[table_name])
 
         # Check the version info of the db for compatibility
-        check_version_info(engine, self.version_info, ASSET_DB_VERSION)
+        check_version_info(engine.connect(), version_info, ASSET_DB_VERSION)
 
         # Cache for lookup of assets by sid, the objects in the asset lookup
         # may be shared with the results from equity and future lookup caches.
@@ -327,7 +333,12 @@ class AssetFinder(object):
 
     @lazyval
     def exchange_info(self):
-        es = sa.select(self.exchanges.c).execute().fetchall()
+        conn = self.engine.connect()
+        es = conn.execute(
+            sa.select(self.exchanges.c)
+        ).fetchall()
+        conn.close()
+
         return {
             name: ExchangeInfo(name, canonical_name, country_code)
             for name, canonical_name, country_code in es
@@ -344,16 +355,21 @@ class AssetFinder(object):
 
     @lazyval
     def symbol_ownership_maps_by_country_code(self):
+        session = self.engine.connect()
         sid_to_country_code = dict(
-            sa.select((
-                self.equities.c.sid,
-                self.exchanges.c.country_code,
-            )).where(
-                self.equities.c.exchange == self.exchanges.c.exchange
-            ).execute().fetchall(),
+            session.execute(
+                sa.select(
+                    self.equities.c.sid,
+                    self.exchanges.c.country_code
+                ).where(
+                    self.equities.c.exchange == self.exchanges.c.exchange
+                )
+            ).fetchall()
         )
+        session.close()
 
         return build_grouped_ownership_map(
+            engine=self.engine,
             table=self.equity_symbol_mappings,
             key_from_row=(
                 lambda row: (row.company_symbol, row.share_class_symbol)
@@ -433,10 +449,15 @@ class AssetFinder(object):
         router_cols = self.asset_router.c
 
         for assets in group_into_chunks(missing):
-            query = sa.select((router_cols.sid, router_cols.asset_type)).where(
+            conn = self.engine.connect()
+
+            query = sa.select(router_cols.sid, router_cols.asset_type).where(
                 self.asset_router.c.sid.in_(map(int, assets))
             )
-            for sid, type_ in query.execute().fetchall():
+            results = conn.execute(query).fetchall()
+            conn.close()
+
+            for sid, type_ in results:
                 missing.remove(sid)
                 found[sid] = self._asset_type_cache[sid] = type_
 
@@ -592,7 +613,7 @@ class AssetFinder(object):
 
     @staticmethod
     def _select_assets_by_sid(asset_tbl, sids):
-        return sa.select([asset_tbl]).where(
+        return sa.select(asset_tbl).where(
             asset_tbl.c.sid.in_(map(int, sids))
         )
 
@@ -642,7 +663,7 @@ class AssetFinder(object):
         to_select = data_cols + (sa.func.max(cols.end_date),)
 
         return sa.select(
-            to_select,
+            *to_select,
         ).where(
             cols.sid.in_(map(int, sid_group))
         ).group_by(
@@ -650,10 +671,12 @@ class AssetFinder(object):
         )
 
     def _lookup_most_recent_symbols(self, sids):
+        conn = self.engine.connect()
+
         return {
-            row.sid: {c: row[c] for c in symbol_columns}
+            row.sid: {c: getattr(row, c) for c in symbol_columns}
             for row in concat(
-                self.engine.execute(
+                conn.execute(
                     self._select_most_recent_symbols_chunk(sid_group),
                 ).fetchall()
                 for sid_group in partition_all(
@@ -671,11 +694,11 @@ class AssetFinder(object):
             def mkdict(row,
                        exchanges=self.exchange_info,
                        symbols=self._lookup_most_recent_symbols(sids)):
-                d = dict(row)
+                d = row._asdict() if hasattr(row, '_asdict') else row
                 d['exchange_info'] = exchanges[d.pop('exchange')]
                 # we are not required to have a symbol for every asset, if
                 # we don't have any symbols we will just use the empty string
-                return merge(d, symbols.get(row['sid'], {}))
+                return merge(d, symbols.get(getattr(row, 'sid'), {}))
         else:
             def mkdict(row, exchanges=self.exchange_info):
                 d = dict(row)
@@ -684,9 +707,13 @@ class AssetFinder(object):
 
         for assets in group_into_chunks(sids):
             # Load misses from the db.
-            query = self._select_assets_by_sid(asset_tbl, assets)
+            conn = self.engine.connect()
 
-            for row in query.execute().fetchall():
+            query = self._select_assets_by_sid(asset_tbl, assets)
+            results = conn.execute(query).fetchall()
+            conn.close()
+
+            for row in results:
                 yield _convert_asset_timestamp_fields(mkdict(row))
 
     def _retrieve_assets(self, sids, asset_tbl, asset_type):
@@ -1275,11 +1302,15 @@ class AssetFinder(object):
 
     def _make_sids(tblattr):
         def _(self):
+            conn = self.engine.connect()
+            results = conn.execute(
+                sa.select(getattr(self, tblattr).c.sid)
+            ).fetchall()
+            conn.close()
+
             return tuple(map(
-                itemgetter('sid'),
-                sa.select((
-                    getattr(self, tblattr).c.sid,
-                )).execute().fetchall(),
+                lambda row: row[0],
+                results
             ))
 
         return _
@@ -1423,14 +1454,19 @@ class AssetFinder(object):
         sids = starts = ends = []
         equities_cols = self.equities.c
         if country_codes:
-            results = sa.select((
-                equities_cols.sid,
-                equities_cols.start_date,
-                equities_cols.end_date,
-            )).where(
-                (self.exchanges.c.exchange == equities_cols.exchange) &
-                (self.exchanges.c.country_code.in_(country_codes))
-            ).execute().fetchall()
+            conn = self.engine.connect()
+            results = conn.execute(
+                sa.select(
+                    equities_cols.sid,
+                    equities_cols.start_date,
+                    equities_cols.end_date,
+                ).where(
+                    (self.exchanges.c.exchange == equities_cols.exchange) &
+                    (self.exchanges.c.country_code.in_(country_codes))
+                )
+            ).fetchall()
+            conn.close()
+
             if results:
                 sids, starts, ends = zip(*results)
 

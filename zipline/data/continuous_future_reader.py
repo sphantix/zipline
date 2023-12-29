@@ -224,8 +224,8 @@ class ContinuousFutureMinuteBarReader(SessionBarReader):
         rolls_by_asset = {}
 
         tc = self.trading_calendar
-        start_session = tc.minute_to_session_label(start_date)
-        end_session = tc.minute_to_session_label(end_date)
+        start_session = tc.minute_to_session(start_date)
+        end_session = tc.minute_to_session(end_date)
 
         for asset in assets:
             rf = self._roll_finders[asset.roll_style]
@@ -262,7 +262,7 @@ class ContinuousFutureMinuteBarReader(SessionBarReader):
                 partitions.append((sid, start, end, start_loc, end_loc))
                 if roll[-1] is not None:
                     start, _ = tc.open_and_close_for_session(
-                        tc.minute_to_session_label(minutes[end_loc + 1]))
+                        tc.minute_to_session(minutes[end_loc + 1]))
 
         for column in columns:
             if column != 'volume':

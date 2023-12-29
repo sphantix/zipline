@@ -36,7 +36,7 @@ class RollFinder(with_metaclass(ABCMeta, object)):
         on a specific date at a specific offset.
         """
         oc = self.asset_finder.get_ordered_contracts(root_symbol)
-        session = self.trading_calendar.minute_to_session_label(dt)
+        session = self.trading_calendar.minute_to_session(dt)
         front = oc.contract_before_auto_close(session.value)
         back = oc.contract_at_offset(front, 1, dt.value)
         if back is None:
@@ -91,15 +91,15 @@ class RollFinder(with_metaclass(ABCMeta, object)):
         front = self._get_active_contract_at_offset(root_symbol, end, 0)
         back = oc.contract_at_offset(front, 1, end.value)
         if back is not None:
-            end_session = self.trading_calendar.minute_to_session_label(end)
+            end_session = self.trading_calendar.minute_to_session(end)
             first = self._active_contract(oc, front, back, end_session)
         else:
             first = front
         first_contract = oc.sid_to_contract[first]
         rolls = [((first_contract >> offset).contract.sid, None)]
         tc = self.trading_calendar
-        sessions = tc.sessions_in_range(tc.minute_to_session_label(start),
-                                        tc.minute_to_session_label(end))
+        sessions = tc.sessions_in_range(tc.minute_to_session(start),
+                                        tc.minute_to_session(end))
         freq = sessions.freq
         if first == front:
             # This is a bit tricky to grasp. Once we have the active contract
@@ -229,8 +229,8 @@ class VolumeRollFinder(RollFinder):
         # date, and a volume flip happened during that period, return the back
         # contract as the active one.
         sessions = tc.sessions_in_range(
-            tc.minute_to_session_label(gap_start),
-            tc.minute_to_session_label(gap_end),
+            tc.minute_to_session(gap_start),
+            tc.minute_to_session(gap_end),
         )
         for session in sessions:
             front_vol = get_value(front, session, 'volume')

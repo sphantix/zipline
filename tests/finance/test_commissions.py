@@ -342,7 +342,7 @@ class CommissionAlgorithmTests(WithMakeAlgo, ZiplineTestCase):
 
     @classmethod
     def make_equity_daily_bar_data(cls, country_code, sids):
-        sessions = cls.trading_calendar.sessions_in_range(
+        sessions = cls.exchange_calendar.sessions_in_range(
             cls.START_DATE, cls.END_DATE,
         )
         for sid in sids:

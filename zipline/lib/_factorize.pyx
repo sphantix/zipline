@@ -1,6 +1,8 @@
 """
 Factorization algorithms.
 """
+# cython: language_level=3
+
 from cpython cimport Py_LT
 from libc.math cimport log
 cimport numpy as np

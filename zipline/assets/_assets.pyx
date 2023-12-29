@@ -1,4 +1,5 @@
 # cython: embedsignature=True
+# cython: language_level=3
 #
 # Copyright 2015 Quantopian, Inc.
 #
@@ -34,8 +35,7 @@ from numpy cimport int64_t
 import warnings
 cimport numpy as np
 
-from trading_calendars import get_calendar
-
+from exchange_calendars import get_calendar
 
 # Users don't construct instances of this object, and embedding the signature
 # in the docstring seems to confuse Sphinx, so disable it for now.

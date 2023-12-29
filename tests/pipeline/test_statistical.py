@@ -15,7 +15,7 @@ from pandas import (
     Int64Index,
     Timestamp,
 )
-from pandas.util.testing import assert_frame_equal
+from pandas.testing import assert_frame_equal
 from scipy.stats import linregress, pearsonr, spearmanr
 
 from empyrical.stats import beta_aligned as empyrical_beta
@@ -59,7 +59,7 @@ from zipline.utils.numpy_utils import (
 
 
 class StatisticalBuiltInsTestCase(zf.WithAssetFinder,
-                                  zf.WithTradingCalendars,
+                                  zf.WithExchangeCalendars,
                                   zf.ZiplineTestCase):
     sids = ASSET_FINDER_EQUITY_SIDS = Int64Index([1, 2, 3])
     START_DATE = Timestamp('2015-01-31', tz='UTC')
@@ -71,7 +71,7 @@ class StatisticalBuiltInsTestCase(zf.WithAssetFinder,
     def init_class_fixtures(cls):
         super(StatisticalBuiltInsTestCase, cls).init_class_fixtures()
 
-        day = cls.trading_calendar.day
+        day = cls.exchange_calendar.day
         cls.dates = dates = date_range(
             '2015-02-01', '2015-02-28', freq=day, tz='UTC',
         )

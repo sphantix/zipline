@@ -15,7 +15,7 @@ import logbook
 import pandas as pd
 import six
 from toolz import concatv
-from trading_calendars import get_calendar
+from exchange_calendars import get_calendar
 
 from zipline.data import bundles
 from zipline.data.benchmarks import get_benchmark_returns_from_file
@@ -30,6 +30,7 @@ from zipline.extensions import load
 from zipline.errors import SymbolNotFound
 from zipline.algorithm import TradingAlgorithm, NoBenchmark
 from zipline.finance.blotter import Blotter
+from zipline.utils.date_utils import get_datetime_without_tz
 
 log = logbook.Logger(__name__)
 
@@ -95,7 +96,7 @@ def _run(handle_data,
         trading_calendar = get_calendar('XNYS')
 
     # date parameter validation
-    if trading_calendar.session_distance(start, end) < 1:
+    if trading_calendar.sessions_distance(start, end) < 1:
         raise _RunAlgoError(
             'There are no trading days between %s and %s' % (
                 start.date(),
@@ -103,6 +104,7 @@ def _run(handle_data,
             ),
         )
 
+    print(f"start: {start}, end: {end}")
     benchmark_sid, benchmark_returns = benchmark_spec.resolve(
         asset_finder=bundle_data.asset_finder,
         start_date=start,
@@ -397,8 +399,8 @@ def run_algorithm(start,
         capital_base=capital_base,
         bundle=bundle,
         bundle_timestamp=bundle_timestamp,
-        start=start,
-        end=end,
+        start=get_datetime_without_tz(start),
+        end=get_datetime_without_tz(end),
         output=os.devnull,
         trading_calendar=trading_calendar,
         print_algo=False,

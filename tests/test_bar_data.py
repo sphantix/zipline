@@ -21,8 +21,8 @@ from numpy import nan
 from numpy.testing import assert_almost_equal
 import pandas as pd
 from toolz import concat
-from trading_calendars import get_calendar
-from trading_calendars.utils.pandas_utils import days_at_time
+from exchange_calendars import get_calendar
+from exchange_calendars.utils.pandas_utils import days_at_time
 
 from zipline._protocol import handle_non_market_minutes
 
@@ -129,21 +129,21 @@ class TestMinuteBarData(WithCreateBarData,
         # illiquid_split_asset trades every 10 minutes
         for sid in (1, cls.SPLIT_ASSET_SID):
             yield sid, create_minute_df_for_asset(
-                cls.trading_calendar,
+                cls.exchange_calendar,
                 cls.equity_minute_bar_days[0],
                 cls.equity_minute_bar_days[-1],
             )
 
         for sid in (2, cls.ILLIQUID_SPLIT_ASSET_SID):
             yield sid, create_minute_df_for_asset(
-                cls.trading_calendar,
+                cls.exchange_calendar,
                 cls.equity_minute_bar_days[0],
                 cls.equity_minute_bar_days[-1],
                 10,
             )
 
         yield cls.HILARIOUSLY_ILLIQUID_ASSET_SID, create_minute_df_for_asset(
-            cls.trading_calendar,
+            cls.exchange_calendar,
             cls.equity_minute_bar_days[0],
             cls.equity_minute_bar_days[-1],
             50,
@@ -230,7 +230,7 @@ class TestMinuteBarData(WithCreateBarData,
             bar_data = self.create_bardata(lambda: minute)
 
             self.assertEqual(
-                self.trading_calendar.minute_to_session_label(minute),
+                self.trading_calendar.minute_to_session(minute),
                 bar_data.current_session
             )
 
@@ -744,7 +744,7 @@ class TestMinuteBarDataFuturesCalendar(WithCreateBarData,
     def make_equity_minute_bar_data(cls):
         # asset1 has trades every minute
         yield 1, create_minute_df_for_asset(
-            cls.trading_calendar,
+            cls.exchange_calendar,
             cls.equity_minute_bar_days[0],
             cls.equity_minute_bar_days[-1],
         )
@@ -777,7 +777,7 @@ class TestMinuteBarDataFuturesCalendar(WithCreateBarData,
     @classmethod
     def init_class_fixtures(cls):
         super(TestMinuteBarDataFuturesCalendar, cls).init_class_fixtures()
-        cls.trading_calendar = get_calendar('CMES')
+        cls.exchange_calendar = get_calendar('CMES')
 
     def test_can_trade_multiple_exchange_closed(self):
         nyse_asset = self.asset_finder.retrieve_asset(1)
@@ -951,7 +951,7 @@ class TestDailyBarData(WithCreateBarData,
     @classmethod
     def make_adjustment_writer_equity_daily_bar_reader(cls):
         return MockDailyBarReader(
-            dates=cls.trading_calendar.sessions_in_range(
+            dates=cls.exchange_calendar.sessions_in_range(
                 cls.START_DATE,
                 cls.END_DATE,
             ),
@@ -962,7 +962,7 @@ class TestDailyBarData(WithCreateBarData,
         for sid in sids:
             asset = cls.asset_finder.retrieve_asset(sid)
             yield sid, create_daily_df_for_asset(
-                cls.trading_calendar,
+                cls.exchange_calendar,
                 asset.start_date,
                 asset.end_date,
                 interval=2 - sid % 2

@@ -1,4 +1,5 @@
 # cython: embedsignature=True
+# cython: language_level=3
 #
 # Copyright 2016 Quantopian, Inc.
 #
@@ -32,9 +33,9 @@ from cpython cimport bool
 from functools import partial
 
 from numpy import array, empty, iinfo
-from numpy cimport long_t, int64_t
+from numpy cimport int_t, int64_t
 from pandas import Timestamp
-from trading_calendars import get_calendar
+from exchange_calendars import get_calendar
 import warnings
 
 
@@ -91,9 +92,9 @@ cdef class ContinuousFuture:
     Instances of this class are exposed to the algorithm.
     """
 
-    cdef readonly long_t sid
+    cdef readonly int_t sid
     # Cached hash of self.sid
-    cdef long_t sid_hash
+    cdef int_t sid_hash
 
     cdef readonly object root_symbol
     cdef readonly int offset
@@ -116,7 +117,7 @@ cdef class ContinuousFuture:
     })
 
     def __init__(self,
-                 long_t sid, # sid is required
+                 int_t sid, # sid is required
                  object root_symbol,
                  int offset,
                  object roll_style,
@@ -157,7 +158,7 @@ cdef class ContinuousFuture:
         Cython rich comparison method.  This is used in place of various
         equality checkers in pure python.
         """
-        cdef long_t x_as_int, y_as_int
+        cdef int_t x_as_int, y_as_int
 
         try:
             x_as_int = PyNumber_Index(x)
@@ -381,7 +382,7 @@ cdef class OrderedContracts(object):
             prev.next = curr
             prev = curr
 
-    cpdef long_t contract_before_auto_close(self, long_t dt_value):
+    cpdef int_t contract_before_auto_close(self, int_t dt_value):
         """
         Get the contract with next upcoming auto close date.
         """
@@ -392,7 +393,7 @@ cdef class OrderedContracts(object):
             curr = curr.next
         return curr.contract.sid
 
-    cpdef contract_at_offset(self, long_t sid, Py_ssize_t offset, int64_t start_cap):
+    cpdef contract_at_offset(self, int_t sid, Py_ssize_t offset, int64_t start_cap):
         """
         Get the sid which is the given sid plus the offset distance.
         An offset of 0 should be reflexive.
@@ -410,7 +411,7 @@ cdef class OrderedContracts(object):
         else:
             return None
 
-    cpdef long_t[:] active_chain(self, long_t starting_sid, long_t dt_value):
+    cpdef int_t[:] active_chain(self, int_t starting_sid, int_t dt_value):
         curr = self.sid_to_contract[starting_sid]
         cdef list contracts = []
 

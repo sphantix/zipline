@@ -48,7 +48,7 @@ from zipline.testing.fixtures import (
     WithCreateBarData,
     WithDataPortal,
     WithSimParams,
-    WithTradingCalendars,
+    WithExchangeCalendars,
     ZiplineTestCase,
 )
 from zipline.utils.classproperty import classproperty
@@ -945,7 +945,7 @@ class MarketImpactTestCase(WithCreateBarData, ZiplineTestCase):
 
 class OrdersStopTestCase(WithSimParams,
                          WithAssetFinder,
-                         WithTradingCalendars,
+                         WithExchangeCalendars,
                          ZiplineTestCase):
 
     START_DATE = pd.Timestamp('2006-01-05 14:31', tz='utc')

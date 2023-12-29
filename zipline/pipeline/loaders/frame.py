@@ -12,7 +12,6 @@ from pandas import (
     DataFrame,
     DatetimeIndex,
     Index,
-    Int64Index,
 )
 from zipline.lib.adjusted_array import AdjustedArray
 from zipline.lib.adjustment import make_adjustment_from_labels
@@ -78,7 +77,7 @@ class DataFrameLoader(implements(PipelineLoader)):
         self.adjustments = adjustments
         self.adjustment_apply_dates = DatetimeIndex(adjustments.apply_date)
         self.adjustment_end_dates = DatetimeIndex(adjustments.end_date)
-        self.adjustment_sids = Int64Index(adjustments.sid)
+        self.adjustment_sids = Index(adjustments.sid)
 
     def format_adjustments(self, dates, assets):
         """

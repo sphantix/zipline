@@ -1,4 +1,6 @@
 # cython: embedsignature=True
+# cython: language_level=3
+
 from cpython cimport Py_EQ
 
 cimport cython

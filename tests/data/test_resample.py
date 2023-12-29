@@ -606,9 +606,9 @@ class TestResampleSessionBars(WithBcolzFutureMinuteBarReader,
         calendar = self.trading_calendar
         for sid in self.ASSET_FINDER_FUTURE_SIDS:
             case_frame = FUTURE_CASES[sid]
-            first = calendar.minute_to_session_label(
+            first = calendar.minute_to_session(
                 case_frame.index[0])
-            last = calendar.minute_to_session_label(
+            last = calendar.minute_to_session(
                 case_frame.index[-1])
             result = self.session_bar_reader.load_raw_arrays(
                 OHLCV, first, last, [sid])

@@ -11,7 +11,7 @@ from pandas import (
     DatetimeIndex,
     Int64Index,
 )
-from trading_calendars import get_calendar
+from exchange_calendars import get_calendar
 
 from zipline.lib.adjustment import (
     ADD,

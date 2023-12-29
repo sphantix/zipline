@@ -149,7 +149,7 @@ class DailyHistoryAggregator(object):
         self._one_min = pd.Timedelta('1 min').value
 
     def _prelude(self, dt, field):
-        session = self._trading_calendar.minute_to_session_label(dt)
+        session = self._trading_calendar.minute_to_session(dt)
         dt_value = dt.value
         cache = self._caches[field]
         if cache is None or cache[0] != session:
@@ -180,7 +180,7 @@ class DailyHistoryAggregator(object):
         market_open, prev_dt, dt_value, entries = self._prelude(dt, 'open')
 
         opens = []
-        session_label = self._trading_calendar.minute_to_session_label(dt)
+        session_label = self._trading_calendar.minute_to_session(dt)
 
         for asset in assets:
             if not asset.is_alive_for_session(session_label):
@@ -249,7 +249,7 @@ class DailyHistoryAggregator(object):
         market_open, prev_dt, dt_value, entries = self._prelude(dt, 'high')
 
         highs = []
-        session_label = self._trading_calendar.minute_to_session_label(dt)
+        session_label = self._trading_calendar.minute_to_session(dt)
 
         for asset in assets:
             if not asset.is_alive_for_session(session_label):
@@ -318,7 +318,7 @@ class DailyHistoryAggregator(object):
         market_open, prev_dt, dt_value, entries = self._prelude(dt, 'low')
 
         lows = []
-        session_label = self._trading_calendar.minute_to_session_label(dt)
+        session_label = self._trading_calendar.minute_to_session(dt)
 
         for asset in assets:
             if not asset.is_alive_for_session(session_label):
@@ -384,7 +384,7 @@ class DailyHistoryAggregator(object):
         market_open, prev_dt, dt_value, entries = self._prelude(dt, 'close')
 
         closes = []
-        session_label = self._trading_calendar.minute_to_session_label(dt)
+        session_label = self._trading_calendar.minute_to_session(dt)
 
         def _get_filled_close(asset):
             """
@@ -458,7 +458,7 @@ class DailyHistoryAggregator(object):
         market_open, prev_dt, dt_value, entries = self._prelude(dt, 'volume')
 
         volumes = []
-        session_label = self._trading_calendar.minute_to_session_label(dt)
+        session_label = self._trading_calendar.minute_to_session(dt)
 
         for asset in assets:
             if not asset.is_alive_for_session(session_label):
@@ -579,13 +579,13 @@ class MinuteResampleSessionBarReader(SessionBarReader):
     def sessions(self):
         cal = self._calendar
         first = self._minute_bar_reader.first_trading_day
-        last = cal.minute_to_session_label(
+        last = cal.minute_to_session(
             self._minute_bar_reader.last_available_dt)
         return cal.sessions_in_range(first, last)
 
     @lazyval
     def last_available_dt(self):
-        return self.trading_calendar.minute_to_session_label(
+        return self.trading_calendar.minute_to_session(
             self._minute_bar_reader.last_available_dt
         )
 
@@ -594,7 +594,7 @@ class MinuteResampleSessionBarReader(SessionBarReader):
         return self._minute_bar_reader.first_trading_day
 
     def get_last_traded_dt(self, asset, dt):
-        return self.trading_calendar.minute_to_session_label(
+        return self.trading_calendar.minute_to_session(
             self._minute_bar_reader.get_last_traded_dt(asset, dt))
 
 

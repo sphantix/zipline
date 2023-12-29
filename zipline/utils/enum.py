@@ -37,13 +37,12 @@ _inttypes_map = {
         c_ushort
     }
 }
-_inttypes = list(
-    pd.Series(_inttypes_map).reindex(
-        range(max(_inttypes_map.keys())),
-        method='bfill',
-    ),
-)
 
+# 显式指定 index，按 sizeof(t) - 1 排序
+_inttypes_series = pd.Series(_inttypes_map, index=sorted(_inttypes_map.keys()))
+
+# 使用 reindex 填充缺失的值
+_inttypes = list(_inttypes_series.reindex(range(max(_inttypes_map.keys())), method='bfill'))
 
 def enum(option, *options):
     """

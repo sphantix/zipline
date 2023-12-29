@@ -28,13 +28,13 @@ from pandas import (
     Categorical,
     DataFrame,
     date_range,
-    Int64Index,
+    Index,
     MultiIndex,
     Series,
     Timestamp,
 )
 from pandas.compat.chainmap import ChainMap
-from pandas.util.testing import assert_frame_equal
+from pandas.testing import assert_frame_equal
 from six import iteritems, itervalues
 from toolz import merge
 
@@ -219,7 +219,7 @@ class WithConstantInputs(zf.WithAssetFinder):
 
 class ConstantInputTestCase(WithConstantInputs,
                             zf.WithAssetFinder,
-                            zf.WithTradingCalendars,
+                            zf.WithExchangeCalendars,
                             zf.ZiplineTestCase):
 
     def test_bad_dates(self):
@@ -800,7 +800,7 @@ HUGE_SID = np.iinfo('int32').max + 1
 
 
 class FrameInputTestCase(zf.WithAssetFinder,
-                         zf.WithTradingCalendars,
+                         zf.WithExchangeCalendars,
                          zf.ZiplineTestCase):
     asset_ids = ASSET_FINDER_EQUITY_SIDS = range(HUGE_SID, HUGE_SID + 3)
     start = START_DATE = Timestamp('2015-01-01', tz='utc')
@@ -813,7 +813,7 @@ class FrameInputTestCase(zf.WithAssetFinder,
         cls.dates = date_range(
             cls.start,
             cls.end,
-            freq=cls.trading_calendar.day,
+            freq=cls.exchange_calendar.day,
             tz='UTC',
         )
         cls.assets = cls.asset_finder.retrieve_all(cls.asset_ids)
@@ -922,7 +922,7 @@ class SyntheticBcolzTestCase(zf.WithAdjustmentReader,
         cls.equity_info = ret = make_rotating_equity_info(
             num_assets=6,
             first_start=cls.first_asset_start,
-            frequency=cls.trading_calendar.day,
+            frequency=cls.exchange_calendar.day,
             periods_between_starts=4,
             asset_lifetime=8,
             exchange='NYSE',
@@ -1067,9 +1067,9 @@ class SyntheticBcolzTestCase(zf.WithAdjustmentReader,
 
 
 class ParameterizedFactorTestCase(zf.WithAssetFinder,
-                                  zf.WithTradingCalendars,
+                                  zf.WithExchangeCalendars,
                                   zf.ZiplineTestCase):
-    sids = ASSET_FINDER_EQUITY_SIDS = Int64Index([1, 2, 3])
+    sids = ASSET_FINDER_EQUITY_SIDS = Index([1, 2, 3])
     START_DATE = Timestamp('2015-01-31', tz='UTC')
     END_DATE = Timestamp('2015-03-01', tz='UTC')
     ASSET_FINDER_COUNTRY_CODE = '??'
@@ -1077,7 +1077,7 @@ class ParameterizedFactorTestCase(zf.WithAssetFinder,
     @classmethod
     def init_class_fixtures(cls):
         super(ParameterizedFactorTestCase, cls).init_class_fixtures()
-        day = cls.trading_calendar.day
+        day = cls.exchange_calendar.day
 
         cls.dates = dates = date_range(
             '2015-02-01',
@@ -1379,7 +1379,7 @@ class WindowSafetyPropagationTestCase(zf.WithSeededRandomPipelineEngine,
 
 class PopulateInitialWorkspaceTestCase(WithConstantInputs,
                                        zf.WithAssetFinder,
-                                       zf.WithTradingCalendars,
+                                       zf.WithExchangeCalendars,
                                        zf.ZiplineTestCase):
 
     @parameter_space(window_length=[3, 5], pipeline_length=[5, 10])

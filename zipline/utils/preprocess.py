@@ -3,6 +3,7 @@ Utilities for validating inputs to user-facing API functions.
 """
 from textwrap import dedent
 from types import CodeType
+import inspect
 from uuid import uuid4
 
 from toolz.curried.operator import getitem
@@ -12,25 +13,27 @@ from zipline.utils.compat import getargspec, wraps
 
 
 _code_argorder = (
-    ('co_argcount', 'co_kwonlyargcount') if PY3 else ('co_argcount',)
-) + (
-    'co_nlocals',
-    'co_stacksize',
-    'co_flags',
-    'co_code',
-    'co_consts',
-    'co_names',
-    'co_varnames',
-    'co_filename',
-    'co_name',
-    'co_firstlineno',
-    'co_lnotab',
-    'co_freevars',
-    'co_cellvars',
+    "co_argcount",
+    "co_posonlyargcount",
+    "co_kwonlyargcount",
+    "co_nlocals",
+    "co_stacksize",
+    "co_flags",
+    "co_code",
+    "co_consts",
+    "co_names",
+    "co_varnames",
+    "co_filename",
+    "co_name",
+    "co_qualname",  # new in 3.11
+    "co_firstlineno",
+    "co_lnotab",
+    "co_exceptiontable",  # new in 3.11
+    "co_freevars",
+    "co_cellvars",
 )
 
 NO_DEFAULT = object()
-
 
 def preprocess(*_unused, **processors):
     """
@@ -80,7 +83,8 @@ def preprocess(*_unused, **processors):
         raise TypeError("preprocess() doesn't accept positional arguments")
 
     def _decorator(f):
-        args, varargs, varkw, defaults = argspec = getargspec(f)
+        args, varargs, varkw, defaults, _, _, _ = argspec = inspect.getfullargspec(f)
+
         if defaults is None:
             defaults = ()
         no_defaults = (NO_DEFAULT,) * (len(args) - len(defaults))

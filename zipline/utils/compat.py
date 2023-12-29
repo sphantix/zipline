@@ -123,11 +123,14 @@ else:
 
     def getargspec(f):
         full_argspec = inspect.getfullargspec(f)
-        return inspect.ArgSpec(
+        return inspect.FullArgSpec(
             args=full_argspec.args,
             varargs=full_argspec.varargs,
-            keywords=full_argspec.varkw,
+            varkw=full_argspec.varkw,
             defaults=full_argspec.defaults,
+            kwonlyargs=full_argspec.kwonlyargs,
+            kwonlydefaults=full_argspec.kwonlydefaults,
+            annotations=full_argspec.annotations
         )
 
 

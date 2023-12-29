@@ -34,7 +34,7 @@ from pandas import (
 from six import iteritems
 from six.moves import range
 from toolz import merge
-from trading_calendars import get_calendar
+from exchange_calendars import get_calendar
 
 from zipline.data.bar_reader import (
     NoDataAfterDate,
@@ -67,7 +67,7 @@ from zipline.testing.fixtures import (
     WithHDF5EquityMultiCountryDailyBarReader,
     WithSeededRandomState,
     WithTmpDir,
-    WithTradingCalendars,
+    WithExchangeCalendars,
     ZiplineTestCase,
 )
 from zipline.testing.predicates import assert_equal, assert_sequence_equal
@@ -157,9 +157,9 @@ class _DailyBarsTestCase(WithEquityDailyBarData,
     def init_class_fixtures(cls):
         super(_DailyBarsTestCase, cls).init_class_fixtures()
 
-        cls.sessions = cls.trading_calendar.sessions_in_range(
-            cls.trading_calendar.minute_to_session_label(TEST_CALENDAR_START),
-            cls.trading_calendar.minute_to_session_label(TEST_CALENDAR_STOP)
+        cls.sessions = cls.exchange_calendar.sessions_in_range(
+            cls.exchange_calendar.minute_to_session(TEST_CALENDAR_START),
+            cls.exchange_calendar.minute_to_session(TEST_CALENDAR_STOP)
         )
 
     @classmethod
@@ -668,7 +668,7 @@ class BcolzDailyBarNeverReadAllTestCase(BcolzDailyBarTestCase):
 
 class BcolzDailyBarWriterMissingDataTestCase(WithAssetFinder,
                                              WithTmpDir,
-                                             WithTradingCalendars,
+                                             WithExchangeCalendars,
                                              ZiplineTestCase):
     # Sid 5 is active from 2015-06-02 to 2015-06-30.
     MISSING_DATA_SID = 5

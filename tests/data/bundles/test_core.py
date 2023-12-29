@@ -5,7 +5,7 @@ import pandas as pd
 import sqlalchemy as sa
 from toolz import valmap
 import toolz.curried.operator as op
-from trading_calendars import TradingCalendar, get_calendar
+from exchange_calendars import ExchangeCalendar, get_calendar
 
 from zipline.assets import ASSET_DB_VERSION
 
@@ -178,7 +178,7 @@ class BundleCoreTestCase(WithInstanceTmpDir,
             daily_bar_writer.write(daily_bar_data)
             adjustment_writer.write(splits=splits)
 
-            assert_is_instance(calendar, TradingCalendar)
+            assert_is_instance(calendar, ExchangeCalendar)
             assert_is_instance(cache, dataframe_cache)
             assert_is_instance(show_progress, bool)
 

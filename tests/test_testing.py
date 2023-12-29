@@ -133,7 +133,7 @@ class TestTestingSlippage(WithConstantEquityMinuteBarData,
         super(TestTestingSlippage, cls).init_class_fixtures()
         cls.asset = cls.asset_finder.retrieve_asset(1)
         cls.minute, _ = (
-            cls.trading_calendar.open_and_close_for_session(cls.START_DATE)
+            cls.exchange_calendar.open_and_close_for_session(cls.START_DATE)
         )
 
     def init_instance_fixtures(self):
